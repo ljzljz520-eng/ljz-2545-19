@@ -1,0 +1,5 @@
+data/db.json
+data/db.json.*.tmp
+data/photostore/
+node_modules/
+*.log

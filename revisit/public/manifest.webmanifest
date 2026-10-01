@@ -1,0 +1,9 @@
+{
+  "name": "道路离线回访",
+  "short_name": "道路回访",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1d4ed8",
+  "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Cpath d='M14 44 L26 22 L38 38 L44 30 L50 44 Z' fill='white'/%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
+}

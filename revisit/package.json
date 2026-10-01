@@ -1,0 +1,13 @@
+{
+  "name": "road-revisit-offline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "离线道路回访：手机网页记录路况/噪声/照片，后台接收事件与附件，按轨迹误差或人工范围计算覆盖，整路线 vs 分段有效期对比",
+  "scripts": {
+    "start": "node src/server.js",
+    "seed": "node src/seed.js",
+    "test": "node --test test/"
+  },
+  "engines": { "node": ">=20" }
+}

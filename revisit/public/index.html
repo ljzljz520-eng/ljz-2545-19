@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#1d4ed8">
+<title>道路离线回访</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>道路离线回访</h1>
+  <div class="net" id="netState">网络状态检测中…</div>
+</header>
+<main>
+  <nav class="tabs">
+    <button data-tab="visit" class="active">新建回访</button>
+    <button data-tab="status">覆盖与有效期</button>
+    <button data-tab="queue">待同步 <span id="qCount"></span></button>
+  </nav>
+
+  <!-- 新建回访 -->
+  <section id="tab-visit">
+    <div class="card">
+      <h2>1. 人员与路线（观察绑定）</h2>
+      <label>回访人员</label>
+      <select id="person"></select>
+      <label>路线 / 几何版本</label>
+      <select id="route"></select>
+      <div class="muted" id="versionHint"></div>
+    </div>
+    <div class="card">
+      <h2>2. 轨迹记录（带误差）</h2>
+      <div class="row">
+        <button class="primary" id="recBtn">开始记录轨迹</button>
+        <button class="secondary" id="stopBtn" disabled>停止</button>
+      </div>
+      <div class="muted" id="trackInfo">尚未开始。漂移点（精度差/偏离路线）不会计入覆盖。</div>
+      <label>或人工声明覆盖段（无 GPS 时）</label>
+      <div id="manualBox" class="muted">选择路线后加载分段</div>
+    </div>
+    <div class="card">
+      <h2>3. 路况与噪声</h2>
+      <label>路况</label>
+      <select id="roadCond">
+        <option value="good">良好</option>
+        <option value="rough">颠簸/坑槽</option>
+        <option value="narrow">通行受限</option>
+        <option value="blocked">阻断</option>
+      </select>
+      <label>噪声（设备估算 dB(A)，仅供参考）</label>
+      <input type="number" id="noiseDb" min="30" max="120" placeholder="例如 64">
+      <label>备注</label>
+      <textarea id="note" rows="2"></textarea>
+    </div>
+    <div class="card">
+      <h2>4. 照片（公开副本自动去地理元数据）</h2>
+      <input type="file" id="photos" accept="image/jpeg,image/png" capture="environment" multiple>
+      <div id="thumbs"></div>
+      <div class="muted">原件仅后台受限保留；对外发布使用已剥离 EXIF/GPS 的副本。</div>
+    </div>
+    <button class="primary" id="submitBtn">提交（离线自动入队）</button>
+    <div class="disclaimer">
+      设备记录时间与服务器收到时间将分开核验；若设备时钟偏差过大，该观察不能被计为“今天刚走”。
+      本系统信息只反映最近一次可确认的观察时点，<b>不构成对当前路况或通行安全的保证</b>。
+    </div>
+  </section>
+
+  <!-- 覆盖状态 -->
+  <section id="tab-status" hidden>
+    <div class="card">
+      <h2>两种有效期口径对比</h2>
+      <div id="wholeBox"></div>
+      <hr>
+      <div id="segBox"></div>
+    </div>
+    <div class="card">
+      <h2>页面解释：最近可确认的覆盖时点</h2>
+      <ul class="explain" id="explainBox"></ul>
+    </div>
+  </section>
+
+  <!-- 队列 -->
+  <section id="tab-queue" hidden>
+    <div class="card">
+      <h2>待同步事件（含附件）</h2>
+      <ul class="queue" id="queueBox" style="padding-left:18px"></ul>
+      <button class="primary" id="syncBtn">立即重试同步</button>
+    </div>
+  </section>
+</main>
+<footer>信息新近 ≠ 路况安全保证 · 原件受限保留 · 覆盖以可确认轨迹/人工范围为准</footer>
+<script src="app.js"></script>
+</body>
+</html>
