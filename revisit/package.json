@@ -1,0 +1,13 @@
+{
+  "name": "road-revisit",
+  "version": "1.0.0",
+  "description": "离线回访系统：手机网页采集路况/噪声/照片，后台按轨迹误差或人工范围计算分段覆盖，区分设备时间与服务器时间，支持整路线与分段两种有效期模型",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server/index.js",
+    "seed": "node tools/seed.js",
+    "test": "node tools/acceptance.js"
+  },
+  "engines": { "node": ">=18" }
+}

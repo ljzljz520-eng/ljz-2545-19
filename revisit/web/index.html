@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#0b6e6e">
+<title>路况离线回访</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🛣️ 路况离线回访</h1>
+  <span class="who" id="who"></span>
+</header>
+<main>
+  <nav class="tabs" id="tabs">
+    <button data-tab="capture" class="active">采集</button>
+    <button data-tab="status">覆盖状态</button>
+    <button data-tab="accept">验收</button>
+  </nav>
+
+  <!-- 登录 -->
+  <section class="card" id="login">
+    <h2>演示登录</h2>
+    <label>人员ID（p_alice / p_bob / p_admin）</label>
+    <input id="loginId" value="p_alice">
+    <div style="height:8px"></div>
+    <button id="loginBtn">登录</button>
+    <p class="muted">生产环境应由统一身份签发令牌；演示接口仅用于联调。</p>
+  </section>
+
+  <!-- 采集 -->
+  <section id="tab-capture" class="hidden">
+    <div class="card">
+      <h2>① 选择路线 / 几何版本</h2>
+      <select id="routeSel"></select>
+      <p class="muted" id="routeMeta"></p>
+      <label>覆盖方式</label>
+      <select id="coverMode">
+        <option value="track">GPS 轨迹（带 30m 误差缓冲带）</option>
+        <option value="manual">人工范围（选起止桩号/点）</option>
+      </select>
+      <div id="manualBox" class="hidden">
+        <div class="row">
+          <div><label>起(米)</label><input id="mFrom" type="number" value="0"></div>
+          <div><label>止(米)</label><input id="mTo" type="number" value="200"></div>
+        </div>
+        <p class="muted">轨迹不可用时人工圈定，同样作为“实际覆盖路段”入库存证。</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>② 轨迹采集</h2>
+      <div class="clocks">
+        <div>设备时间<br><span class="mono" id="devClock">-</span></div>
+        <div>服务器收到时间<br><span class="mono" id="srvClock">-</span></div>
+      </div>
+      <p class="muted" id="clockHint">设备时间用于标注“观察时刻”，服务器时间为裁决时钟；两者分开保存。晚上传不会冒充今天。</p>
+      <div class="row" style="margin-top:8px">
+        <button id="recBtn">● 开始记录轨迹</button>
+        <button class="secondary" id="useLocBtn">仅记录观察点</button>
+      </div>
+      <p class="muted" id="trackInfo">尚未记录</p>
+    </div>
+
+    <div class="card">
+      <h2>③ 路况 / 噪声</h2>
+      <label>路面状况</label>
+      <select id="surface">
+        <option value="good">良好</option><option value="fair">一般</option>
+        <option value="poor">较差（坑洼/破损）</option><option value="blocked">阻断</option>
+      </select>
+      <label>交通状况</label>
+      <select id="traffic">
+        <option value="free">畅通</option><option value="light">轻量</option>
+        <option value="heavy">繁忙</option><option value="jam">拥堵</option>
+      </select>
+      <div class="row">
+        <div><label>噪声 dB(A)（可手填）</label><input id="noise" type="number" placeholder="如 62"></div>
+        <div style="display:flex;align-items:flex-end"><button class="secondary" id="noiseBtn">测 3 秒</button></div>
+      </div>
+      <label>隐患（逗号分隔，可选）</label>
+      <input id="hazards" placeholder="pothole, debris">
+      <label>备注</label>
+      <textarea id="note"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>④ 照片</h2>
+      <input type="file" id="photoInput" accept="image/jpeg" capture="environment">
+      <p class="muted">服务端保存<b>原件（受限、90 天留存）</b>并生成<b>剥离地理 EXIF 的公开件</b>。</p>
+      <div id="photoList"></div>
+    </div>
+
+    <div class="card">
+      <button id="queueBtn">存入离线队列</button>
+      <div style="height:8px"></div>
+      <button class="secondary" id="syncBtn">同步到服务器（可重试/幂等）</button>
+      <p class="muted" id="onlineState"></p>
+      <div id="queueList"></div>
+    </div>
+  </section>
+
+  <!-- 覆盖状态 -->
+  <section id="tab-status" class="hidden">
+    <div class="card">
+      <h2>路线覆盖与有效期</h2>
+      <div id="routeList"></div>
+    </div>
+    <div class="card hidden" id="detailCard">
+      <h2 id="detailName"></h2>
+      <div id="detailBody"></div>
+    </div>
+  </section>
+
+  <!-- 验收 -->
+  <section id="tab-accept" class="hidden">
+    <div class="card">
+      <h2>验收场景（自动测试）</h2>
+      <p class="muted">服务端内置零依赖验收脚本 <span class="mono">npm test</span>，覆盖以下场景：</p>
+      <ul class="check" style="padding-left:0">
+        <li>改线后补交旧回访 → 绑定旧几何版本，不刷新新线复查日期</li>
+        <li>两人观察冲突 → 同点 72h 内结论不一致被标红待核</li>
+        <li>附件缺失 → 事件标记 attachmentsComplete=false 并列出缺项</li>
+        <li>超期 → 整线模型与分段模型分别给出 expired 时点</li>
+        <li>网络重试 → clientEventId 幂等，重复附件去重</li>
+        <li>GPS 漂移/漏段 → 显示未核原因，未走部分不记为已核</li>
+        <li>晚上传 → observedAt 与 receivedAt 分离，lateUpload=true</li>
+        <li>照片 EXIF GPS → 公开件剥离、原件管理员受控访问</li>
+        <li>依赖推荐缓存 → 改线/事件变化使标签版本前进，旧缓存失效</li>
+      </ul>
+      <div id="acceptResult"></div>
+    </div>
+    <div class="card">
+      <h2>页面信息时效说明</h2>
+      <p class="muted" id="recencyNote">“最近可确认的覆盖时点”表示系统<b>有据可查的最近观察时刻</b>，
+      仅说明信息的新近度；路况随时可能变化（施工、事故、天气），
+      <b>该信息不构成对当前路况或通行安全的保证</b>。出行请以现场状况与官方通告为准。</p>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>

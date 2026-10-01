@@ -1,0 +1,5 @@
+data/db.json
+data/originals/
+data/public/
+node_modules/
+*.log
